@@ -200,7 +200,7 @@
     
     /* ===== TINY BADGE - HIDDEN BY DEFAULT ===== */
     .popup-tiny-badge {
-      display: none; /* Hidden until ad loads */
+      display: none;
       position: absolute;
       top: 20px;
       right: 20px;
@@ -264,7 +264,7 @@
     
     /* ===== AD LABELS - HIDDEN BY DEFAULT ===== */
     .ad-label-top, .ad-label-bottom {
-      display: none; /* Hidden until ad loads */
+      display: none;
       color: #888;
       font-size: 10px;
       text-transform: uppercase;
@@ -451,7 +451,7 @@
 <div class="popup-toast" id="popupToast">✅ Ad clicked!</div>
 
 <!-- ============================================================ -->
-<!-- ===== JAVASCRIPT ===== -->
+<!-- ===== JAVASCRIPT (Popup after 10 seconds) ===== -->
 <!-- ============================================================ -->
 <script>
 // ===== VIDEO CONTROLS =====
@@ -469,63 +469,70 @@ let popupClicks = 0;
 let toastTimeout = null;
 
 // ============================================================
-// ===== CHECK IF ADS ARE LOADED (SHOW LABELS ONLY WHEN FILLED) =====
+// ===== CHECK IF ADS ARE LOADED =====
 // ============================================================
+
+function isAdLoaded(slotId) {
+  const slot = document.getElementById(slotId);
+  if (!slot) return false;
+  
+  // Check for children (ad content)
+  if (slot.children.length > 0) return true;
+  
+  // Check for iframe (ad usually loads inside iframe)
+  if (slot.querySelector('iframe')) return true;
+  
+  // Check for any content inside
+  if (slot.innerHTML && slot.innerHTML.trim().length > 0) return true;
+  
+  return false;
+}
 
 // Check Top Ad
 function checkTopAdLoaded() {
-  const slot = document.getElementById('div-gpt-ad-1787049080357-0');
   const label = document.querySelector('.ad-label-top');
+  const loaded = isAdLoaded('div-gpt-ad-1787049080357-0');
   
-  if (slot) {
-    // Check if ad has content (children or iframe)
-    const hasContent = slot.children.length > 0 || slot.querySelector('iframe');
-    if (hasContent) {
-      if (label) label.style.display = 'block';
-      console.log('✅ Top ad loaded - Label showing');
-    } else {
-      if (label) label.style.display = 'none';
-      console.log('❌ Top ad empty - Label hidden');
-    }
+  if (loaded) {
+    if (label) { label.style.display = 'block'; }
+    console.log('✅ Top ad loaded - Label showing');
+  } else {
+    if (label) { label.style.display = 'none'; }
+    console.log('❌ Top ad empty - Label hidden');
   }
 }
 
 // Check Bottom Ad
 function checkBottomAdLoaded() {
-  const slot = document.getElementById('div-gpt-ad-1787049302190-0');
   const label = document.querySelector('.ad-label-bottom');
+  const loaded = isAdLoaded('div-gpt-ad-1787049302190-0');
   
-  if (slot) {
-    const hasContent = slot.children.length > 0 || slot.querySelector('iframe');
-    if (hasContent) {
-      if (label) label.style.display = 'block';
-      console.log('✅ Bottom ad loaded - Label showing');
-    } else {
-      if (label) label.style.display = 'none';
-      console.log('❌ Bottom ad empty - Label hidden');
-    }
+  if (loaded) {
+    if (label) { label.style.display = 'block'; }
+    console.log('✅ Bottom ad loaded - Label showing');
+  } else {
+    if (label) { label.style.display = 'none'; }
+    console.log('❌ Bottom ad empty - Label hidden');
   }
 }
 
 // Check Popup Ad (Tiny Badge)
 function checkPopupAdLoaded() {
-  const slot = document.getElementById('div-gpt-ad-1787049302190-popup');
   const badge = document.querySelector('.popup-tiny-badge');
+  const loaded = isAdLoaded('div-gpt-ad-1787049302190-popup');
   
-  if (slot) {
-    const hasContent = slot.children.length > 0 || slot.querySelector('iframe');
-    if (hasContent) {
-      if (badge) badge.style.display = 'block';
-      console.log('✅ Popup ad loaded - Tiny badge showing');
-    } else {
-      if (badge) badge.style.display = 'none';
-      console.log('❌ Popup ad empty - Tiny badge hidden');
-    }
+  if (loaded) {
+    if (badge) { badge.style.display = 'block'; }
+    console.log('✅ Popup ad loaded - Tiny badge showing');
+  } else {
+    if (badge) { badge.style.display = 'none'; }
+    console.log('❌ Popup ad empty - Tiny badge hidden');
   }
 }
 
 // ===== CHECK ALL ADS =====
 function checkAllAds() {
+  console.log('🔍 Checking all ads...');
   checkTopAdLoaded();
   checkBottomAdLoaded();
   checkPopupAdLoaded();
@@ -580,15 +587,17 @@ function openPopup() {
   adPopup.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
   
-  console.log('📊 Popup opened - Ad hidden behind image');
+  console.log('📊 Popup opened');
   
   if(window.googletag && googletag.cmd){
     googletag.cmd.push(function(){
       googletag.display('div-gpt-ad-1787049302190-popup');
-      console.log('✅ Popup ad displayed (behind image)');
+      console.log('✅ Popup ad display requested');
       
-      // Check if ad loaded after displaying
+      // Check if ad loaded after display
       setTimeout(checkPopupAdLoaded, 1500);
+      setTimeout(checkPopupAdLoaded, 3000);
+      setTimeout(checkPopupAdLoaded, 5000);
     });
   }
   
@@ -607,10 +616,11 @@ function closePopup() {
 }
 
 // ============================================================
-// ===== VIDEO EVENT =====
+// ===== VIDEO EVENT - POPUP AFTER 10 SECONDS =====
 // ============================================================
 video.addEventListener('timeupdate', () => {
-  if(!popupShown && video.currentTime >= 4){
+  // Popup opens when video reaches 10 seconds
+  if(!popupShown && video.currentTime >= 10){
     openPopup();
   }
 });
@@ -684,9 +694,9 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================================
-// ===== GOOGLE AD MANAGER =====
+// ===== GOOGLE AD MANAGER (No 1-second delay) =====
 // ============================================================
-setTimeout(function(){
+(function() {
   var s = document.createElement('script');
   s.async = true;
   s.src = 'https://securepubads.g.doubleclick.net/tag/js/gpt.js';
@@ -716,13 +726,12 @@ setTimeout(function(){
     
     console.log('✅ Google Ad Manager loaded');
     
-    // Check if ads loaded after 2 seconds
+    // Check if ads loaded after delays
     setTimeout(checkAllAds, 2000);
-    
-    // Also check again after 5 seconds (some ads load slower)
     setTimeout(checkAllAds, 5000);
+    setTimeout(checkAllAds, 8000);
   });
-}, 1000);
+})();
 
 // ============================================================
 // ===== PREFETCH =====
